@@ -49,5 +49,5 @@ if __name__ == "__main__":
     with sqlite3.connect(DB) as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS feedback(id TEXT PRIMARY KEY, time TEXT, response TEXT)")
     port = int(os.environ.get("PORT", "8501"))
-    print(f"Bloom running at http://localhost:{port}", flush=True)
+    print(f"Mixed Signals running at http://localhost:{port}", flush=True)
     ThreadingHTTPServer(("0.0.0.0", port), App).serve_forever()
