@@ -59,15 +59,27 @@ function degree(field,desired,person){
  return [0,0];
 }
 // Zero-order Sugeno rules. Triangular low/medium/high memberships sum to one.
-// Joint rule strength is the product of memberships for priority fit and overall fit.
+// Joint rule strength is the product of memberships for selection-weighted fit and overall fit.
 function membership(x){return [Math.max(0,1-2*x),1-Math.abs(2*x-1),Math.max(0,2*x-1)]}
-function rank(prefs,priority,gender){
+// These answers explicitly express openness. Other selected preferences have
+// normal weight. Skipping a question removes it from both inputs.
+function selectionWeight(field, answer){
+ const openAnswers = {
+   "Relationship goal": ["Long-term, open to short-term","Short-term, open to long-term","Still figuring it out"],
+   "Family plans": ["Unsure"]
+ };
+ return openAnswers[field]?.includes(answer) ? 0.5 : 1;
+}
+function rank(prefs,gender){
  const outputs=[[0,25,50],[20,50,77],[40,76,100]];
  return people.filter(p=>gender==="Everyone"||p.gender===gender).map(p=>{
    const details=Object.entries(prefs).map(([field,want])=>({field,fit:degree(field,want,p)}));
    const mean=i=>details.reduce((s,d)=>s+d.fit[i],0)/details.length;
-   const overall=mean(0), top=details.find(d=>d.field===priority);
-   const weights=membership(top?top.fit[0]:overall), levels=membership(overall);
+   const overall=mean(0);
+   const importance=details.map(d=>selectionWeight(d.field,prefs[d.field]));
+   const totalWeight=importance.reduce((sum,value)=>sum+value,0);
+   const selectedFit=details.reduce((sum,d,i)=>sum+importance[i]*d.fit[0],0)/totalWeight;
+   const weights=membership(selectedFit), levels=membership(overall);
    const fuzzy=outputs.reduce((sum,row,i)=>sum+row.reduce((s,v,j)=>s+weights[i]*levels[j]*v,0),0);
    return {p,fuzzy,strict:100*mean(1),details};
  });

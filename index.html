@@ -8,7 +8,7 @@
 <label><input id="distOn" type="checkbox"> Prefer someone within <input id="distance" aria-label="Preferred distance" type="number" min="1" max="500" value="30"> km</label></fieldset>
 <fieldset><legend>What would you like in a partner?</legend><div id="categories" class="grid"></div></fieldset>
 <details><summary>Interests, languages and profile details</summary><div id="tags"></div><label><input id="bio" type="checkbox"> Prefer a written bio</label><label><input id="photoOn" type="checkbox"> Prefer at least <input id="photos" type="number" min="1" max="9" value="3" aria-label="Photo count"> photos</label></details>
-<label>Which preference matters most? <select id="priority"></select></label><button>Discover my matches →</button><p role="alert" id="error"></p></form></div>
+<button>Discover my matches →</button><p role="alert" id="error"></p></form></div>
 <div id="results" hidden><h1>Your matches</h1><p>Explore both lists. Tied scores share a rank.</p><div id="tabs"></div><div id="cards"></div><button id="edit">Edit preferences</button><button id="review">Give feedback →</button></div>
 <div id="survey" hidden><h1>Your take</h1><form id="feedback"><fieldset><legend>Which list better reflected your preferences?</legend><div id="choices"></div><label>What influenced your choice? (optional)<textarea id="comment" maxlength="600"></textarea></label></fieldset><p>Submitting saves your feedback and the two ranked lists. Please leave out identifying details.</p><button id="send">Submit feedback</button><button type="button" id="back">Revisit lists</button><p role="status" id="status"></p></form></div>
 </main><script src="match.js"></script><script>
@@ -32,8 +32,6 @@ function read(){
  if(el('bio').checked)prefs.Bio=true;
  return prefs;
 }
-function priorities(){const old=el('priority').value;el('priority').innerHTML='<option value="">All equally important</option>'+items(Object.keys(read()));if(Object.hasOwn(read(),old))el('priority').value=old}
-priorities();el('preferences').onchange=e=>{if(e.target.id!=='priority')priorities()};
 function page(id){for(const x of ['setup','results','survey'])el(x).hidden=x!==id;window.scrollTo(0,0)}
 const order=Math.random()<.5?['fuzzy','strict']:['strict','fuzzy'];
 let ranked=[],seen=new Set(),saved=false;
@@ -49,13 +47,13 @@ function show(i){
  }).join('');
  el('review').disabled=seen.size<2;el('review').textContent=seen.size<2?'View both lists to give feedback':'Give feedback →';
 }
-el('preferences').onsubmit=e=>{e.preventDefault();const pref=read();if(!Object.keys(pref).length||pref.Age&&pref.Age[0]>pref.Age[1]){el('error').textContent='Select at least one preference and check your age range.';return}el('error').textContent='';ranked=rank(pref,el('priority').value,el('gender').value);seen.clear();page('results');show(0)};
+el('preferences').onsubmit=e=>{e.preventDefault();const pref=read();if(!Object.keys(pref).length||pref.Age&&pref.Age[0]>pref.Age[1]){el('error').textContent='Select at least one preference and check your age range.';return}el('error').textContent='';ranked=rank(pref,el('gender').value);seen.clear();page('results');show(0)};
 el('edit').onclick=()=>page('setup');el('review').onclick=()=>page('survey');el('back').onclick=()=>page('results');
 el('choices').innerHTML=['List A','List B','Both equally','Neither'].map((v,i)=>'<label><input required type="radio" name="choice" value="'+i+'"> '+v+'</label>').join('');
 const id=crypto.randomUUID();el('feedback').onsubmit=async e=>{
  e.preventDefault();if(saved)return;el('send').disabled=true;
- const data={id,choice:[...order,'equal','neither'][+new FormData(e.target).get('choice')],first:order[0],comment:el('comment').value,rankings:Object.fromEntries(order.map(m=>[m,sorted(m).map(r=>[r.p.name,+r[m].toFixed(1)])]))};
- try{const reply=await fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!reply.ok)throw Error();saved=true;el('feedback').innerHTML='<h2>Thanks for testing Bloom.</h2><p>Your feedback was saved.</p>'+order.map((m,i)=>'<p><b>'+label(i)+'</b> used '+(m==='fuzzy'?'fuzzy rules with partial matches and your chosen priority.':'the average of strict yes/no preference matches.')+'</p>').join('')}
+ const data={id,modelVersion:'selection-rules-v2',choice:[...order,'equal','neither'][+new FormData(e.target).get('choice')],first:order[0],comment:el('comment').value,rankings:Object.fromEntries(order.map(m=>[m,sorted(m).map(r=>[r.p.name,+r[m].toFixed(1)])]))};
+ try{const reply=await fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!reply.ok)throw Error();saved=true;el('feedback').innerHTML='<h2>Thanks for testing Bloom.</h2><p>Your feedback was saved.</p>'+order.map((m,i)=>'<p><b>'+label(i)+'</b> used '+(m==='fuzzy'?'fuzzy rules with partial matches based on your selections.':'the average of strict yes/no preference matches.')+'</p>').join('')}
  catch{el('status').textContent='Your response could not be saved. Please try again.';el('send').disabled=false}
 };
 </script></html>
