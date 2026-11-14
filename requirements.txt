@@ -1,6 +1,0 @@
-scikit-fuzzy==0.5.0
-streamlit==1.63.0
-numpy
-scipy
-networkx
-matplotlib
