@@ -18,6 +18,7 @@ class App(BaseHTTPRequestHandler):
         body = (ROOT / asset[0]).read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", asset[1] + "; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
 
@@ -26,7 +27,7 @@ class App(BaseHTTPRequestHandler):
             return self.send_error(404)
         try:
             length = int(self.headers.get("Content-Length", 0))
-            if not 0 < length <= 12000:
+            if not 0 < length <= 40000:
                 return self.send_error(413)
             data = json.loads(self.rfile.read(length))
             token = str(uuid.UUID(data["id"]))

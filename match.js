@@ -59,28 +59,30 @@ function degree(field,desired,person){
  return [0,0];
 }
 // Zero-order Sugeno rules. Triangular low/medium/high memberships sum to one.
-// Joint rule strength is the product of memberships for selection-weighted fit and overall fit.
+// Joint rule strength is the product of memberships for top-priority fit and overall fit.
 function membership(x){return [Math.max(0,1-2*x),1-Math.abs(2*x-1),Math.max(0,2*x-1)]}
-// These answers explicitly express openness. Other selected preferences have
-// normal weight. Skipping a question removes it from both inputs.
-function selectionWeight(field, answer){
- const openAnswers = {
-   "Relationship goal": ["Long-term, open to short-term","Short-term, open to long-term","Still figuring it out"],
-   "Family plans": ["Unsure"]
- };
- return openAnswers[field]?.includes(answer) ? 0.5 : 1;
-}
-function rank(prefs,gender){
- const outputs=[[0,25,50],[20,50,77],[40,76,100]];
- return people.filter(p=>gender==="Everyone"||p.gender===gender).map(p=>{
-   const details=Object.entries(prefs).map(([field,want])=>({field,fit:degree(field,want,p)}));
-   const mean=i=>details.reduce((s,d)=>s+d.fit[i],0)/details.length;
-   const overall=mean(0);
-   const importance=details.map(d=>selectionWeight(d.field,prefs[d.field]));
-   const totalWeight=importance.reduce((sum,value)=>sum+value,0);
-   const selectedFit=details.reduce((sum,d,i)=>sum+importance[i]*d.fit[0],0)/totalWeight;
-   const weights=membership(selectedFit), levels=membership(overall);
-   const fuzzy=outputs.reduce((sum,row,i)=>sum+row.reduce((s,v,j)=>s+weights[i]*levels[j]*v,0),0);
-   return {p,fuzzy,strict:100*mean(1),details};
- });
+
+// Rank-sum weights: first of n preferences receives n points, last receives 1.
+// Shared by both methods. Deal-breakers require exact satisfaction in both lists.
+function rank(prefs, gender, priorities = Object.keys(prefs), dealbreakers = []) {
+  const keys = Object.keys(prefs);
+  if (!keys.length) return [];
+  const ordered = [...new Set(priorities.filter(key => keys.includes(key)))];
+  keys.forEach(key => { if (!ordered.includes(key)) ordered.push(key); });
+  const outputs = [[0, 15, 35], [20, 50, 70], [40, 80, 100]];
+  return people.filter(p => gender === "Everyone" || p.gender === gender).map(p => {
+    const details = ordered.map((field, index) => ({
+      field, weight: ordered.length - index, fit: degree(field, prefs[field], p)
+    }));
+    const weightSum = details.reduce((sum, d) => sum + d.weight, 0);
+    const average = method => details.reduce((sum, d) => sum + d.weight * d.fit[method], 0) / weightSum;
+    // The weakest fit among the top three prevents compensation by minor criteria.
+    const priorityFit = Math.min(...details.slice(0, 3).map(d => d.fit[0]));
+    const priorityMemberships = membership(priorityFit);
+    const overallMemberships = membership(average(0));
+    const fuzzy = outputs.reduce((sum, row, i) => sum + row.reduce(
+      (subtotal, output, j) => subtotal + priorityMemberships[i] * overallMemberships[j] * output, 0), 0);
+    const failed = details.filter(d => dealbreakers.includes(d.field) && d.fit[1] !== 1).map(d => d.field);
+    return {p, fuzzy, strict: 100 * average(1), details, failed};
+  });
 }

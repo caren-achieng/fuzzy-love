@@ -1,16 +1,18 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mixed Signals · Discover</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f5ff;color:#211f37;font:16px/1.5 "DM Sans",system-ui,sans-serif}main,header{max-width:840px;margin:auto;padding:20px}header{display:flex;align-items:center;gap:12px;font:800 32px/1.2 system-ui;letter-spacing:-1.5px;color:#342571;border-bottom:1px solid #d7d0ef}h1{font:normal clamp(38px,7vw,68px)/1.05 system-ui;font-weight:750;letter-spacing:-.04em;margin:20px 0}h2{font:700 30px system-ui}fieldset,article,details,section.panel{background:#ffffff;border:1px solid #dad7ed;border-radius:20px;padding:18px;margin:14px 0}legend,summary{font-weight:700}label{display:block;margin:10px 0}input,select,button,textarea{font:inherit}input[type=number]{width:78px}select,textarea,input[type=number]{padding:8px;background:white;border:1px solid #9993ad;border-radius:8px}button{background:#5335bc;color:white;border:0;border-radius:24px;padding:11px 20px;margin:6px 4px 6px 0;cursor:pointer}button:disabled{opacity:.55}button[aria-pressed=true]{background:#37227b;outline:3px solid #b7a7ff}.chip{display:inline-block;padding:5px 10px;background:#ebe7ff;border-radius:16px;margin:3px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:0 14px}.card{position:relative;border-left:5px solid #7858e2}.score{float:right;font-weight:700;color:#51339f}small{color:#555166}textarea{width:100%}[hidden]{display:none!important}
-.signal{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:42px;height:42px;background:#2c2152;border-radius:13px}.signal i{width:4px;height:12px;background:#b7a7ff;border-radius:4px}.signal i:nth-child(2){height:26px}.signal i:nth-child(3){height:19px;background:#ff9d96}.signal i:last-child{height:9px;background:#ff9d96}input{accent-color:#5335bc}:focus-visible{outline:3px solid #7356c5;outline-offset:2px}</style><header><span class="signal" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Mixed Signals</header><main>
+.signal{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:42px;height:42px;background:#2c2152;border-radius:13px}.signal i{width:4px;height:12px;background:#b7a7ff;border-radius:4px}.signal i:nth-child(2){height:26px}.signal i:nth-child(3){height:19px;background:#ff9d96}.signal i:last-child{height:9px;background:#ff9d96}input{accent-color:#5335bc}:focus-visible{outline:3px solid #7356c5;outline-offset:2px}.priority-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #dad7ed;padding:8px 0}.priority-row>div{display:flex;align-items:center;gap:4px}.priority-row button{padding:6px 12px}.priority-row label{white-space:nowrap}@media(max-width:480px){.priority-row{flex-wrap:wrap}} </style><header><span class="signal" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Mixed Signals</header><main>
 <div id="setup"><h1>Who’s your type?</h1><p>Choose what matters to you. We’ll use your answers to rank ten fictional dating profiles. You can skip any preference.</p>
 <form id="preferences"><fieldset><legend>Discovery</legend><label>Show me <select id="gender"><option>Everyone</option><option>Woman</option><option>Man</option><option>Nonbinary</option></select></label>
 <label><input id="ageOn" type="checkbox"> Preferred age range</label><input id="amin" type="number" aria-label="Minimum age" min="18" max="100" value="24"> to <input id="amax" type="number" aria-label="Maximum age" min="18" max="100" value="35">
 <label><input id="distOn" type="checkbox"> Prefer someone within <input id="distance" aria-label="Preferred distance" type="number" min="1" max="500" value="30"> km</label></fieldset>
 <fieldset><legend>What would you like in a partner?</legend><div id="categories" class="grid"></div></fieldset>
 <details><summary>Interests, languages and profile details</summary><div id="tags"></div><label><input id="bio" type="checkbox"> Prefer a written bio</label><label><input id="photoOn" type="checkbox"> Prefer at least <input id="photos" type="number" min="1" max="9" value="3" aria-label="Photo count"> photos</label></details>
-<button>Discover my matches →</button><p role="alert" id="error"></p></form></div>
+<fieldset><legend>Put your priorities in order</legend>
+<p>Use the arrows to place your most important preference first. Mark “Must match” for any deal-breaker. Only people meeting all deal-breakers appear in either list.</p>
+<div id="priorities"></div></fieldset><button>Discover my matches →</button><p role="alert" id="error"></p></form></div>
 <div id="results" hidden><h1>Your matches</h1><p>Explore both lists. Tied scores share a rank.</p><div id="tabs"></div><div id="cards"></div><button id="edit">Edit preferences</button><button id="review">Give feedback →</button></div>
-<div id="survey" hidden><h1>Your take</h1><form id="feedback"><fieldset><legend>Which list better reflected your preferences?</legend><div id="choices"></div><label>What influenced your choice? (optional)<textarea id="comment" maxlength="600"></textarea></label></fieldset><p>Submitting saves your feedback and the two ranked lists. Please leave out identifying details.</p><button id="send">Submit feedback</button><button type="button" id="back">Revisit lists</button><p role="status" id="status"></p></form></div>
+<div id="survey" hidden><h1>Your take</h1><form id="feedback"><fieldset><legend>Which list better reflected your preferences?</legend><div id="choices"></div><label>What influenced your choice? (optional)<textarea id="comment" maxlength="600"></textarea></label></fieldset><p>Submitting saves your selected preferences, priorities, deal-breakers, feedback and the two ranked lists. Please leave out identifying details.</p><button id="send">Submit feedback</button><button type="button" id="back">Revisit lists</button><p role="status" id="status"></p></form></div>
 </main><script src="match.js"></script><script>
 const el=id=>document.getElementById(id);
 const items=(arr)=>arr.map(x=>'<option>'+x+'</option>').join('');
@@ -32,28 +34,61 @@ function read(){
  if(el('bio').checked)prefs.Bio=true;
  return prefs;
 }
+
+let priorities = [], dealbreakers = new Set(), snapshot = null;
+function refreshPriorities() {
+ const prefs = read(), keys = Object.keys(prefs);
+ priorities = priorities.filter(key => keys.includes(key));
+ keys.forEach(key => { if (!priorities.includes(key)) priorities.push(key); });
+ dealbreakers = new Set([...dealbreakers].filter(key => keys.includes(key)));
+ el('priorities').innerHTML = priorities.length ? priorities.map((field, i) =>
+   '<div class="priority-row"><b>'+(i+1)+'. '+field+'</b><div>' +
+   '<button type="button" data-move="-1" data-index="'+i+'" aria-label="Move '+field+' up" '+(i===0?'disabled':'')+'>↑</button>' +
+   '<button type="button" data-move="1" data-index="'+i+'" aria-label="Move '+field+' down" '+(i===priorities.length-1?'disabled':'')+'>↓</button>' +
+   '<label><input type="checkbox" data-must="'+i+'" '+(dealbreakers.has(field)?'checked':'')+'> Must match</label></div></div>'
+ ).join('') : '<p>Select a preference above to rank it here.</p>';
+}
+el('preferences').addEventListener('change', e => {
+ if(e.target.dataset.must !== undefined) {
+   const field = priorities[+e.target.dataset.must];
+   if(e.target.checked) dealbreakers.add(field); else dealbreakers.delete(field);
+ } else refreshPriorities();
+});
+el('priorities').onclick = e => {
+ const button=e.target.closest('button[data-move]');
+ if(!button) return;
+ const index=+button.dataset.index, target=index+(+button.dataset.move);
+ [priorities[index],priorities[target]]=[priorities[target],priorities[index]];
+ refreshPriorities();
+ const focusIndex = target;
+ el('priorities').querySelector('[data-index="'+focusIndex+'"][data-move="'+button.dataset.move+'"]').focus();
+};
+refreshPriorities();
 function page(id){for(const x of ['setup','results','survey'])el(x).hidden=x!==id;window.scrollTo(0,0)}
 const order=Math.random()<.5?['fuzzy','strict']:['strict','fuzzy'];
 let ranked=[],seen=new Set(),saved=false;
 const label=i=>'List '+('AB'[i]);
-const sorted=m=>[...ranked].sort((a,b)=>b[m]-a[m]||a.p.name.localeCompare(b.p.name));
+const sorted=m=>ranked.filter(r=>!r.failed.length).sort((a,b)=>b[m]-a[m]||a.p.name.localeCompare(b.p.name));
 function show(i){
  seen.add(i);const m=order[i];el('tabs').innerHTML=order.map((_,j)=>'<button aria-pressed="'+(i===j)+'" onclick="show('+j+')">'+label(j)+'</button>').join('');
  let previous,position;
- el('cards').innerHTML=sorted(m).map((r,j)=>{
+ const eligible = sorted(m);
+ el('cards').innerHTML='<p>'+eligible.length+' profiles meet your deal-breakers. '+(ranked.length-eligible.length)+' excluded.</p>'+
+ (eligible.length?'':'<p>No profiles meet all your deal-breakers. You can edit your preferences or still give feedback.</p>')+eligible.map((r,j)=>{
  const score=r[m].toFixed(1);if(score!==previous)position=j+1;previous=score;
  const p=r.p;
- return '<article class="card"><small>RANK '+position+'</small><span class="score">'+score+' / 100</span><h2>'+p.name+', '+p.age+'</h2><small>'+p.gender+' · '+p.km+' km away</small><p>'+(p.bio||'No written bio')+'</p>'+p.Interests.map(v=>'<span class="chip">'+v+'</span>').join('')+'<details><summary>View profile</summary>'+fields.map(f=>'<p><b>'+f+'</b> · '+p[f]+'</p>').join('')+'<p>'+p.Languages.join(', ')+' · '+p.photos+' photos</p></details></article>';
+ return '<article class="card"><small>RANK '+position+'</small><span class="score">'+score+' / 100</span><h2>'+p.name+', '+p.age+'</h2><small>'+p.gender+' · '+p.km+' km away</small><p>'+(p.bio||'No written bio')+'</p>'+p.Interests.map(v=>'<span class="chip">'+v+'</span>').join('')+'<details><summary>How this profile fits</summary><p>From your most important preference to least important.</p>'+r.details.map(d=>'<p><b>'+d.field+'</b> · '+(m==='fuzzy'?Math.round(d.fit[0]*100):d.fit[1]*100)+'% fit'+(snapshot.dealbreakers.includes(d.field)?' · Must match':'')+'</p>').join('')+'</details><details><summary>View profile</summary>'+fields.map(f=>'<p><b>'+f+'</b> · '+p[f]+'</p>').join('')+'<p>'+p.Languages.join(', ')+' · '+p.photos+' photos</p></details></article>';
  }).join('');
  el('review').disabled=seen.size<2;el('review').textContent=seen.size<2?'View both lists to give feedback':'Give feedback →';
 }
-el('preferences').onsubmit=e=>{e.preventDefault();const pref=read();if(!Object.keys(pref).length||pref.Age&&pref.Age[0]>pref.Age[1]){el('error').textContent='Select at least one preference and check your age range.';return}el('error').textContent='';ranked=rank(pref,el('gender').value);seen.clear();page('results');show(0)};
+el('preferences').onsubmit=e=>{e.preventDefault();const pref=read();if(!Object.keys(pref).length||pref.Age&&pref.Age[0]>pref.Age[1]){el('error').textContent='Select at least one preference and check your age range.';return}el('error').textContent='';snapshot={preferences:pref,priorities:[...priorities],dealbreakers:[...dealbreakers],gender:el('gender').value};
+ranked=rank(pref,snapshot.gender,snapshot.priorities,snapshot.dealbreakers);seen.clear();page('results');show(0)};
 el('edit').onclick=()=>page('setup');el('review').onclick=()=>page('survey');el('back').onclick=()=>page('results');
 el('choices').innerHTML=['List A','List B','Both equally','Neither'].map((v,i)=>'<label><input required type="radio" name="choice" value="'+i+'"> '+v+'</label>').join('');
 const id=crypto.randomUUID();el('feedback').onsubmit=async e=>{
  e.preventDefault();if(saved)return;el('send').disabled=true;
- const data={id,modelVersion:'selection-rules-v2',choice:[...order,'equal','neither'][+new FormData(e.target).get('choice')],first:order[0],comment:el('comment').value,rankings:Object.fromEntries(order.map(m=>[m,sorted(m).map(r=>[r.p.name,+r[m].toFixed(1)])]))};
- try{const reply=await fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!reply.ok)throw Error();saved=true;el('feedback').innerHTML='<h2>Thanks for testing Mixed Signals.</h2><p>Your feedback was saved.</p>'+order.map((m,i)=>'<p><b>'+label(i)+'</b> used '+(m==='fuzzy'?'fuzzy rules with partial matches based on your selections.':'the average of strict yes/no preference matches.')+'</p>').join('')}
+ const data={id,modelVersion:'ranked-priorities-v3',...snapshot,excluded:ranked.filter(r=>r.failed.length).map(r=>({name:r.p.name,failed:r.failed})),choice:[...order,'equal','neither'][+new FormData(e.target).get('choice')],first:order[0],comment:el('comment').value,rankings:Object.fromEntries(order.map(m=>[m,sorted(m).map(r=>[r.p.name,+r[m].toFixed(1)])]))};
+ try{const reply=await fetch('/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});if(!reply.ok)throw Error();saved=true;el('feedback').innerHTML='<h2>Thanks for testing Mixed Signals.</h2><p>Your feedback was saved.</p>'+order.map((m,i)=>'<p><b>'+label(i)+'</b> used '+(m==='fuzzy'?'fuzzy rules with partial matches and your ranked priorities.':'a weighted average of exact matches using your ranked priorities.')+'</p>').join('')}
  catch{el('status').textContent='Your response could not be saved. Please try again.';el('send').disabled=false}
 };
 </script></html>
