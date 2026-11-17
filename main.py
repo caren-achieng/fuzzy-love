@@ -27,7 +27,7 @@ class App(BaseHTTPRequestHandler):
             return self.send_error(404)
         try:
             length = int(self.headers.get("Content-Length", 0))
-            if not 0 < length <= 40000:
+            if not 0 < length <= 131072:
                 return self.send_error(413)
             data = json.loads(self.rfile.read(length))
             token = str(uuid.UUID(data["id"]))
